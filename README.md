@@ -1,12 +1,60 @@
-# LoopSmith
+<div align="center">
+  <a href="https://gamingtoolset.github.io/loopsmith-music-generator/website/">
+    <img src="website/og.png" alt="LoopSmith — procedural game music waveform and 36-step sequencer" width="100%">
+  </a>
 
-LoopSmith is a zero-dependency procedural music generator for small games. It creates reproducible 36-step arrangements in the browser, lets you edit and audition every note, renders WAV previews, and exports structured handoff data for code-first game audio pipelines.
+  <h1>LoopSmith</h1>
 
-[Launch the studio](https://gamingtoolset.github.io/loopsmith-music-generator/) · [Open the project page](https://gamingtoolset.github.io/loopsmith-music-generator/website/) · [View the repository](https://github.com/GamingToolset/loopsmith-music-generator)
+  <p><strong>Compose, shape, audition, and transfer procedural game loops — entirely in your browser.</strong></p>
+  <p>A zero-dependency music laboratory for reproducible, code-first game soundtracks.</p>
+
+  <p>
+    <a href="https://gamingtoolset.github.io/loopsmith-music-generator/"><img src="https://img.shields.io/badge/OPEN_LIVE_STUDIO-D8FF62?style=for-the-badge&amp;logo=googlechrome&amp;logoColor=101114" alt="Open the live LoopSmith studio"></a>
+    <a href="https://announcerua.itch.io/loopsmith-music-generator"><img src="https://img.shields.io/badge/PLAY_ON_ITCH.IO-FA5C5C?style=for-the-badge&amp;logo=itchdotio&amp;logoColor=ffffff" alt="Play LoopSmith on itch.io"></a>
+    <a href="https://github.com/GamingToolset/loopsmith-music-generator"><img src="https://img.shields.io/badge/VIEW_SOURCE-181717?style=for-the-badge&amp;logo=github&amp;logoColor=ffffff" alt="View the LoopSmith source code"></a>
+  </p>
+
+  <p>
+    <img src="https://img.shields.io/badge/JavaScript-Vanilla-F7DF1E?style=flat-square&amp;logo=javascript&amp;logoColor=000000" alt="Vanilla JavaScript">
+    <img src="https://img.shields.io/badge/Web_Audio-API-8B7DFF?style=flat-square&amp;logo=html5&amp;logoColor=ffffff" alt="Web Audio API">
+    <img src="https://img.shields.io/badge/runtime_dependencies-0-D8FF62?style=flat-square" alt="Zero runtime dependencies">
+    <img src="https://img.shields.io/badge/sequencer-36_steps-8B7DFF?style=flat-square" alt="36-step sequencer">
+    <img src="https://img.shields.io/badge/generator_tests-2%2C000_loops-D8FF62?style=flat-square" alt="2,000 generator test loops">
+    <a href="https://github.com/GamingToolset/loopsmith-music-generator/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-Apache--2.0-4D8EFF?style=flat-square" alt="Apache 2.0 license"></a>
+  </p>
+
+  <p>
+    <a href="https://github.com/GamingToolset/loopsmith-music-generator/stargazers"><img src="https://img.shields.io/github/stars/GamingToolset/loopsmith-music-generator?style=social" alt="GitHub stars"></a>
+  </p>
+</div>
+
+> [!NOTE]
+> LoopSmith synthesizes every note locally. It does not upload your seeds, arrangements, handoff data, or rendered audio.
+
+## Contents
+
+- [Why LoopSmith](#why-loopsmith)
+- [Highlights](#highlights)
+- [Quick start](#quick-start)
+- [Project structure](#project-structure)
+- [Using the studio](#using-the-studio)
+- [How generation works](#how-generation-works)
+- [Reproducibility](#reproducibility)
+- [Export formats](#export-formats)
+- [Testing](#testing)
+- [Browser support](#browser-support)
+- [Troubleshooting](#troubleshooting)
+- [Contributing](#contributing)
+
+---
 
 ## Why LoopSmith
 
 LoopSmith is designed for games that synthesize music at runtime instead of shipping prerecorded tracks. The browser studio uses the Web Audio API to produce melody, bass, optional pad, lightweight drums, and reference sound effects without downloading samples or contacting an external service.
+
+| Compose | Shape | Ship |
+| :--- | :--- | :--- |
+| Generate seeded motifs, related phrases, harmony, bass, pads, and soft percussion. | Edit all 36 steps, transpose the loop, and tune energy, density, brightness, space, and swing. | Export WAV previews, structured JSON, Godot constants, or an agent-ready implementation brief. |
 
 The application remains deliberately portable:
 
@@ -19,15 +67,16 @@ The application remains deliberately portable:
 
 ## Highlights
 
-- **Musical generation rather than per-step randomness.** Handcrafted motifs are developed into related phrases, answer phrases, variations, and a resolving coda.
-- **Sixteen musical characters.** Each character defines coherent ranges for tempo, energy, density, brightness, space, swing, scales, layers, and voice styles.
-- **Editable 36-step sequencer.** Every generated note can be moved or removed directly in the scale-degree grid.
-- **Constrained density.** Generated loops contain 28–36 active notes, preserve downbeats and the final coda, avoid adjacent rests, and allow at most one rest per visual bar.
-- **Real-time synthesis.** Melody, bass, pad, and percussion are scheduled ahead of playback for stable Web Audio timing.
-- **Output protection.** A transparent dynamics compressor controls peaks when high-energy layers and sound effects overlap.
-- **Live waveform.** The signal display follows the current Web Audio analyser without rebuilding the sequencer on every step.
-- **Portable exports.** Save a two-loop WAV preview, structured JSON, Godot constants, or an implementation prompt for a coding agent.
-- **Offline and private.** Seeds, settings, melodies, and exports remain on the device.
+| | Capability | What it gives you |
+| :---: | :--- | :--- |
+| 🎼 | **Phrase-based generation** | Handcrafted motifs develop into related phrases, answer phrases, variations, and a resolving coda instead of unrelated random notes. |
+| 🎛️ | **Sixteen musical characters** | Coherent ranges for tempo, energy, density, brightness, space, swing, scales, layers, and voice styles. |
+| ▦ | **Editable 36-step sequencer** | Direct control over every scale degree and rest while keeping the composition easy to inspect. |
+| ◆ | **Constrained density** | 28–36 active notes, protected downbeats and coda, no adjacent generated rests, and no more than one rest per visual bar. |
+| ◉ | **Stable real-time audio** | Look-ahead Web Audio scheduling for melody, bass, pad, and percussion, plus transparent peak protection. |
+| 〽 | **Live signal view** | A responsive waveform that follows the analyser without rebuilding hundreds of sequencer controls on every step. |
+| ⇩ | **Portable exports** | WAV, JSON, Godot constants, and a complete implementation prompt for a coding agent. |
+| ⌁ | **Offline and private** | Seeds, settings, melodies, handoff data, and rendered audio remain on the device. |
 
 ## Quick start
 
