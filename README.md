@@ -342,4 +342,10 @@ Please keep runtime additions dependency-free unless a dependency provides a cle
 
 ## License
 
-LoopSmith is distributed under the Apache License 2.0. See the `LICENSE` file in the published repository for the full terms.
+This project is distributed under the **Apache-2.0 license**.
+
+See [`LICENSE`](./LICENSE) for full legal text.
+
+## ❤️ Support the Project
+
+If you find this tool useful, consider leaving a ⭐ on GitHub
