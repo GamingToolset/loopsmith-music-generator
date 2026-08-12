@@ -1,257 +1,195 @@
-<div align="center">
-
 # LoopSmith
 
-**A zero-dependency procedural music generator for small games.**
+LoopSmith is a zero-dependency procedural music generator for small games. It creates reproducible 36-step arrangements in the browser, lets you edit and audition every note, renders WAV previews, and exports structured handoff data for code-first game audio pipelines.
 
-Compose, audition, edit, export, and hand off code-generated game loops from one standalone HTML file.
+[Launch the studio](https://gamingtoolset.github.io/loopsmith-music-generator/) · [Open the project page](https://gamingtoolset.github.io/loopsmith-music-generator/website/) · [View the repository](https://github.com/GamingToolset/loopsmith-music-generator)
 
-[![HTML5](https://img.shields.io/badge/HTML5-standalone-E34F26?logo=html5&logoColor=white)](https://developer.mozilla.org/en-US/docs/Web/HTML)
-[![Web Audio API](https://img.shields.io/badge/Web%20Audio%20API-realtime%20synthesis-7B6CFF)](https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API)
-[![Godot 4](https://img.shields.io/badge/Godot%204-handoff-478CBF?logo=godotengine&logoColor=white)](https://godotengine.org/)
-[![Dependencies](https://img.shields.io/badge/dependencies-0-D8FF62?labelColor=202126)](#requirements)
-[![Offline](https://img.shields.io/badge/offline-ready-D8FF62?labelColor=202126)](#privacy-and-offline-use)
-[![Loop length](https://img.shields.io/badge/sequence-36%20steps-FF8A65?labelColor=202126)](#how-the-generator-works)
+## Why LoopSmith
 
-[Quick start](#quick-start) · [How it works](#how-the-generator-works) · [Godot handoff](#godot-handoff) · [Troubleshooting](#troubleshooting)
+LoopSmith is designed for games that synthesize music at runtime instead of shipping prerecorded tracks. The browser studio uses the Web Audio API to produce melody, bass, optional pad, lightweight drums, and reference sound effects without downloading samples or contacting an external service.
 
-</div>
+The application remains deliberately portable:
 
----
+- no framework, package manager, account, API key, or build step;
+- no runtime dependencies or remote assets;
+- direct `file://` support through ordered classic scripts;
+- deterministic melodic composition from a seed and the selected controls;
+- local synthesis, rendering, and export;
+- a compact JSON and Godot-oriented integration contract.
 
-## Overview
+## Highlights
 
-LoopSmith is a compact browser-based music laboratory designed for procedural game soundtracks. It does not play pre-recorded MP3, WAV, or OGG assets during composition. Instead, it creates notes with the Web Audio API, schedules them in real time, and combines melody, bass, optional pads, and soft percussion into a looping track.
-
-The project is intentionally small: the entire application lives in [`index.html`](./index.html), has no package manager, requires no server, and can be opened directly in a modern browser.
-
-LoopSmith is especially useful for code-first games where music is generated at runtime—for example, a Godot project using `AudioStreamGenerator` and PCM sample buffers.
-
-## Features
-
-- **One-click full regeneration** — tempo, energy, density, brightness, space, swing, key, scale, harmony, melody, pad, drums, and timbre can all change together.
-- **Musical phrase generation** — loops are built from motifs, related variations, answer phrases, and a closing cadence instead of unrelated random notes.
-- **Dense 36-step melodies** — every generated loop contains 28–36 active notes, with rests restricted to weak beats.
-- **Editable sequencer** — click any cell in the melody grid to add, move, or remove a note.
-- **Real-time synthesis** — hear every loop immediately through the Web Audio API.
-- **Live waveform** — inspect the current signal while the loop plays.
-- **Multiple sound characters** — bell, warm, glass, crystal, pluck, and soft synthesis styles.
-- **Layered arrangement** — sustained bass, optional ambient pad, and optional lightweight drums.
-- **Built-in game SFX preview** — audition Tap, Move, Deny, Coin, and Win sounds.
-- **WAV export** — render two repetitions of the current loop as a standard WAV file.
-- **Structured JSON export** — save all musical and integration parameters for tools or agents.
-- **Godot constants** — copy the generated scale, roots, pattern, timing, and timbre values.
-- **Agent-ready handoff** — produce a detailed implementation prompt for a coding agent working on the game.
-- **Offline and private** — synthesis and rendering happen locally on the device.
-- **Zero dependencies** — no build tools, libraries, frameworks, accounts, or API keys.
+- **Musical generation rather than per-step randomness.** Handcrafted motifs are developed into related phrases, answer phrases, variations, and a resolving coda.
+- **Sixteen musical characters.** Each character defines coherent ranges for tempo, energy, density, brightness, space, swing, scales, layers, and voice styles.
+- **Editable 36-step sequencer.** Every generated note can be moved or removed directly in the scale-degree grid.
+- **Constrained density.** Generated loops contain 28–36 active notes, preserve downbeats and the final coda, avoid adjacent rests, and allow at most one rest per visual bar.
+- **Real-time synthesis.** Melody, bass, pad, and percussion are scheduled ahead of playback for stable Web Audio timing.
+- **Output protection.** A transparent dynamics compressor controls peaks when high-energy layers and sound effects overlap.
+- **Live waveform.** The signal display follows the current Web Audio analyser without rebuilding the sequencer on every step.
+- **Portable exports.** Save a two-loop WAV preview, structured JSON, Godot constants, or an implementation prompt for a coding agent.
+- **Offline and private.** Seeds, settings, melodies, and exports remain on the device.
 
 ## Quick start
 
 1. Download or clone the repository.
-2. Open [`index.html`](./index.html) in Chrome, Edge, or Firefox.
-3. Press **Play** to hear the current loop.
-4. Press **New loop · change everything** to generate a substantially different variation.
-5. Adjust the controls or edit individual notes in the melody grid.
-6. Use **Export WAV** to save an audio preview, or expand **Game handoff** to copy implementation data.
+2. Open `index.html` in a current desktop browser.
+3. Press **Play** to audition the original loop.
+4. Press **New loop · change everything** to generate a new musical character.
+5. Adjust the controls or click cells in the melody grid.
+6. Export a WAV preview or expand **Game handoff** to copy integration data.
 
-No installation command is required.
+No installation command is required. If a browser or local security policy restricts `file://` pages, serve the directory with any static server, for example:
 
-## Requirements
+```bash
+python -m http.server 8080
+```
 
-- A modern desktop browser with Web Audio API support.
-- JavaScript enabled.
-- Audio output for live playback.
+Then open `http://localhost:8080`.
 
-Recommended browsers:
+## Project structure
 
-| Browser | Recommendation |
-| --- | --- |
-| Chrome | Recommended |
-| Microsoft Edge | Recommended |
-| Firefox | Supported |
-| Safari | Expected to work, but browser autoplay rules may require an extra click |
+```text
+LoopSmith/
+├── index.html                    # Accessible application shell
+├── assets/
+│   ├── css/
+│   │   ├── base.css              # Tokens, reset, shared controls
+│   │   ├── app.css               # Studio layout and components
+│   │   └── responsive.css        # Responsive layout rules
+│   └── js/
+│       ├── config.js             # Catalogs, presets, state, shared math
+│       ├── generator.js          # Deterministic composition engine
+│       ├── audio-engine.js       # Web Audio voices and scheduler
+│       ├── export.js             # WAV, JSON, Godot, and agent handoff
+│       ├── ui.js                 # Sequencer, waveform, and output views
+│       └── main.js               # Initialization and event orchestration
+├── website/
+│   ├── index.html                # Self-contained one-page presentation
+│   └── og.png                    # Social preview card
+├── tests/
+│   └── generator.test.js         # Determinism and invariant checks
+└── README.md
+```
 
-## Interface
+The scripts use a small `window.LoopSmith` namespace and load in dependency order. This keeps responsibilities separate while preserving direct browser use and avoiding a bundler.
 
-### Live Signal
+## Using the studio
 
-The top panel contains the waveform and playback controls:
+### Transport and waveform
 
 - **Play / Stop** starts or stops real-time synthesis.
-- **New loop · change everything** creates a new musical identity.
-- **Export WAV** renders two complete loop repetitions.
-- The session summary shows the key, loop duration, and selected character.
+- **New loop · change everything** selects a different character and regenerates the complete musical identity.
+- **Export WAV** renders two repetitions plus a short effects tail at 44.1 kHz.
+- The space bar toggles playback when focus is not inside an interactive control.
+- The session summary reports key, loop length, and character.
 
-Pressing the space bar also toggles playback when focus is not inside an input or button.
+### Melody editor
 
-### Melody
+The sequencer has 36 columns and seven scale-degree rows. Click an empty cell to place the note for that step at the selected degree. Click the active cell again to create a rest.
 
-The sequencer contains 36 steps arranged as nine visual bars of four steps. Rows represent scale degrees rather than fixed chromatic notes, which keeps manual edits inside the selected musical scale.
+The generated-density guarantees apply only to generated material. Manual editing is intentionally unrestricted.
 
-Clicking a cell moves the note for that step to the chosen degree. Clicking the currently active cell removes the note and creates a rest.
+### Sound controls
 
-The caption above the grid reports:
-
-- the source motif;
-- the active-note count;
-- the phrase structure used to develop the loop.
-
-### Sound Settings
-
-| Control | What it changes |
+| Control | Effect |
 | --- | --- |
-| Starting point | Loads a known musical setup or returns to generated variations |
-| Seed | Reproduces the deterministic melody choices for that value |
-| Root note | Transposes the complete composition |
-| Scale | Selects the pitch collection used by melody and harmony |
-| Tempo | Changes playback speed and total loop duration |
+| Starting point | Loads a known preset or a generated variation |
+| Seed | Reproduces melodic decisions when the other composition controls match |
+| Root note | Transposes melody, harmony, and bass |
+| Scale | Chooses the pitch collection used by the composition |
+| Tempo | Sets step timing and loop duration |
 | Energy | Changes note length and layer intensity |
-| Note density | Controls a limited number of intentional rests |
-| Timbre brightness | Changes filtering and harmonic strength |
-| Space | Controls the wet reverb contribution |
-| Swing | Delays alternating steps for a looser rhythmic feel |
+| Note density | Targets 28–36 active generated notes |
+| Timbre brightness | Opens the low-pass filter and increases harmonic presence |
+| Space | Changes the convolution-reverb send |
+| Swing | Delays alternating sequence steps |
 | Ambient pad | Adds quiet sustained chord tones |
 | Soft drums | Adds a restrained kick-and-hat layer |
 
-The density range is deliberately limited to `68–100%`. This prevents accidental near-empty melodies while still allowing rhythmic breathing room.
+### Game SFX
 
-### Game Handoff
+The Tap, Move, Deny, Coin, and Win buttons audition small procedural reference sounds. They use the same audio graph but remain separate from the exported music arrangement.
 
-The collapsed panel at the bottom contains three representations of the same loop:
-
-- **Agent** — a complete natural-language implementation request.
-- **JSON** — structured data for tools, scripts, or storage.
-- **Godot** — compact constants and implementation notes for `Audio.gd`.
-
-## How the generator works
-
-LoopSmith uses seeded pseudo-random choices inside musical constraints. A seed can therefore produce variety without making the result arbitrary or impossible to reproduce.
+## How generation works
 
 ### 1. Character selection
 
-The full-regeneration action first selects one of 16 musical characters. Each character defines safe ranges for:
+A full regeneration chooses one of 16 profiles, avoiding the immediately previous profile. A profile supplies safe ranges and weighted choices rather than a fixed song, so variations remain recognizable as members of the same game-music family.
 
-- tempo;
-- energy;
-- density;
-- brightness;
-- space;
-- swing;
-- scale choices;
-- pad and drum availability;
-- synthesis voice styles.
+### 2. Motif selection and transformation
 
-The same character is not intentionally selected twice in a row.
-
-### 2. Motif selection
-
-One of 16 handcrafted eight-step motifs becomes the musical identity of the loop. Motifs favor the smooth, bright, bell-like movement common in lightweight puzzle games.
-
-The motif may be transposed, gently inverted, or smoothed to avoid awkward jumps while staying inside the selected scale.
+One of 16 eight-step motifs becomes phrase `A`. The seeded generator may transpose it, invert its contour, or smooth large scale-degree jumps. All transformations remain inside the selected scale.
 
 ### 3. Phrase development
 
-The motif is expanded into related phrases rather than copied blindly. LoopSmith can create:
+LoopSmith derives related material instead of copying the motif verbatim. It builds `A′`, `A″`, `B`, and `B′` candidates, selects one of four 32-step forms, and appends a four-step cadence that resolves to the tonic.
 
-- an opening theme (`A`);
-- a close variation (`A′`);
-- a contrasting or answering phrase (`B`);
-- a further variation (`A″` or `B′`);
-- a four-step cadence that resolves to the tonic.
+Example structures include:
 
-The resulting form is one of four phrase structures, such as `A A′ B A″ + coda`.
+- `A A′ B A″ + coda`
+- `A B A′ B′ + coda`
+- `A A′ A″ B + coda`
+- `A B B′ A′ + coda`
 
 ### 4. Controlled rests
 
-Rests are placed only after the complete phrase exists. The generator enforces these rules:
+Requested density is converted to a target note count and clamped to 28–36 active notes. Rest placement then follows musical constraints:
 
-- at least 28 of 36 steps contain notes;
-- the first step of every four-step visual bar always contains a note;
-- a visual bar contains at most one rest;
-- adjacent rests are avoided;
-- the final four-step cadence contains no rests.
+- the first step of every four-step visual bar is preserved;
+- the final four-step cadence contains no rests;
+- each bar contains at most one rest;
+- adjacent rests are rejected;
+- weaker beat positions are considered before stronger ones.
 
-This prevents the sparse, disconnected patterns produced by independent per-step randomization.
+Every generated melody passes a structural validation before it reaches the interface.
 
-### 5. Harmony and bass
+### 5. Harmony and arrangement
 
-Harmony comes from one of 24 root progressions. A root lasts for eight sequence steps, giving the melody time to establish a phrase before the harmony moves. Roots cycle when the 36-step loop extends beyond the four-value progression.
+Harmony is selected from 24 four-value semitone progressions. The harmonic root changes every eight sequence steps and cycles when the 36-step melody extends beyond the progression. Bass follows the same harmonic rhythm; pad and drums are enabled by the selected character or by manual controls.
 
-The bass follows the same eight-step harmonic rhythm and uses long, softly decaying notes similar to the original code-generated game soundtrack.
+### 6. Synthesis and scheduling
 
-### 6. Synthesis
-
-The main voice combines a primary oscillator with a quieter harmonic oscillator:
+The melodic voice combines a primary oscillator with a quieter harmonic oscillator:
 
 ```text
 signal = primary(phase) + harmonic_mix × sin(phase × harmonic_ratio)
 ```
 
-Each note uses a short attack, exponential decay, and smooth release to avoid clicks. Brightness adjusts both filtering and harmonic presence. Space routes part of the signal through a locally generated convolution impulse.
+Each note uses a short attack and exponential release to avoid clicks. Brightness controls filtering and harmonic contribution. Space sends the filtered signal to a deterministic convolution impulse. A short look-ahead scheduler queues audio every 25 ms, while visual timers are discarded immediately after use.
 
-## Variation model
+## Reproducibility
 
-The generator currently combines:
+The melody engine is deterministic for the combination of:
 
-- 16 musical characters;
-- 16 source motifs;
-- 4 phrase structures;
-- 24 harmonic progressions;
-- 12 root notes;
-- 4 scales;
-- 6 voice styles;
-- continuous ranges for tempo, energy, density, brightness, space, and swing;
-- deterministic melodic transformations and controlled rest placement.
+- seed;
+- scale;
+- density;
+- generator version.
 
-The practical number of possible loops is therefore far larger than the raw preset count. The constraints are designed to keep those combinations recognizable as music from the same game family.
+Root, tempo, timbre, progression, and layer choices are independent arrangement parameters. To reproduce the complete loop exactly, keep the exported JSON rather than the seed alone. The JSON includes `generator_version: 3` and all current musical and integration values.
 
-## Exporting audio
+## Export formats
 
-Press **Export WAV** to render the current arrangement with `OfflineAudioContext`.
+### WAV
 
-The exported file:
+WAV export uses `OfflineAudioContext` at 44.1 kHz and includes:
 
-- contains two full repetitions of the loop;
-- uses a 44.1 kHz render sample rate;
-- includes melody, bass, enabled pad, enabled drums, filtering, and space;
-- can be used for review, sharing, or comparison.
+- two complete loop repetitions;
+- melody and bass;
+- enabled pad and drums;
+- filtering, convolution space, and output limiting;
+- a short tail for releases and reverb.
 
-The WAV is a preview artifact. The recommended in-game workflow remains procedural synthesis from the exported parameters.
+The WAV is intended for auditioning, review, or reference. The procedural handoff remains the recommended in-game workflow.
 
-## Godot handoff
+### JSON
 
-LoopSmith is designed to describe a procedural implementation rather than merely provide an audio file.
-
-Recommended workflow:
-
-1. Finish the loop in LoopSmith.
-2. Expand **Game handoff**.
-3. Open the **Agent** tab.
-4. Press **Copy handoff**.
-5. Paste the result into the coding agent that has access to the Godot project.
-6. Ask the agent to inspect the existing audio generator before changing it.
-7. Audition the result in the game and keep the LoopSmith seed with the project notes.
-
-The handoff includes:
-
-- sample rate and bus expectations;
-- scale semitones;
-- harmonic roots;
-- the complete 36-step pattern;
-- step and note durations;
-- voice style and harmonic ratio;
-- brightness, space, and swing;
-- pad and drum flags;
-- reference frequencies for every melodic step;
-- instructions to preserve existing SFX and volume controls.
-
-### JSON structure
-
-The JSON export is organized into these top-level sections:
+The stable top-level format identifier remains `loopsmith-game-music-v1`. The payload includes:
 
 ```json
 {
   "format": "loopsmith-game-music-v1",
+  "generator_version": 3,
   "seed": "example-seed",
   "variation_profile": "Classic Dots",
   "tempo": {},
@@ -264,103 +202,95 @@ The JSON export is organized into these top-level sections:
 }
 ```
 
-## Game sound effects
+The composition section reports both active-note counts and realized density, so manual edits remain explicit.
 
-The SFX buttons provide simple procedural reference sounds:
+### Godot and agent handoff
 
-| Event | Reference behavior |
+The Godot tab provides constants for a runtime implementation based on `AudioStreamGenerator`. The Agent tab adds constraints that help a coding agent preserve the existing Music and SFX buses, public sound-effect methods, volume behavior, and headless checks.
+
+Recommended workflow:
+
+1. Finalize the loop in LoopSmith.
+2. Download the JSON as the source of truth.
+3. Copy the Agent handoff into the coding task that has access to the game.
+4. Ask the agent to inspect the existing audio implementation before editing it.
+5. Audition the result in-game and retain the JSON with the project notes.
+
+## Testing
+
+The generator test suite requires Node.js only; it does not install packages:
+
+```bash
+node tests/generator.test.js
+```
+
+It currently validates 2,000 compositions across every scale and representative density values. The checks cover determinism, legal scale degrees, exact constrained density, preserved downbeats, coda integrity, and per-bar rest limits.
+
+For changes to audio or layout, also verify manually in a current Chromium browser and Firefox:
+
+1. play and stop repeatedly;
+2. regenerate while playback is running;
+3. edit notes during playback;
+4. change tempo, brightness, space, and swing;
+5. export WAV and JSON;
+6. test keyboard focus and the space-bar shortcut;
+7. check the studio and project page at narrow and wide widths.
+
+## Browser support
+
+| Browser | Status |
 | --- | --- |
-| Tap | Short high ping |
-| Move | Slightly lower confirmation ping |
-| Deny | Low negative tone |
-| Coin | Two-note ascending sparkle |
-| Win | Four-note rising phrase |
+| Chrome | Recommended |
+| Microsoft Edge | Recommended |
+| Firefox | Supported |
+| Safari | Expected to work; autoplay and local-file policies may require an additional user gesture |
 
-They are previews and remain separate from the music arrangement.
+The browser must support the Web Audio API. WAV rendering additionally requires `OfflineAudioContext`.
 
-## Privacy and offline use
+## Privacy and network behavior
 
-LoopSmith does not upload the melody, seed, exports, or settings. It does not require an account, analytics service, external API, or network connection after the file has been downloaded.
-
-The only external requests made by the document are optional badge images when viewing this README on GitHub. The application itself is self-contained.
-
-## GitHub repository link
-
-The header includes a GitHub button. Until a repository URL is configured, it opens the GitHub home page.
-
-After creating the repository, find this constant near the beginning of the script in [`index.html`](./index.html):
-
-```js
-const GITHUB_REPOSITORY_URL = 'https://github.com/';
-```
-
-Replace it with the final repository URL:
-
-```js
-const GITHUB_REPOSITORY_URL = 'https://github.com/YOUR_USERNAME/YOUR_REPOSITORY';
-```
-
-## Project structure
-
-```text
-LoopSmith/
-├── index.html   # Interface, sequencer, synthesis, export, and handoff logic
-└── README.md    # Project documentation
-```
+The studio does not upload seeds, melodies, settings, handoff text, or audio. It contains no analytics, external fonts, remote scripts, or API calls. The project page also uses local CSS, JavaScript, canvas rendering, and a local social-preview image.
 
 ## Troubleshooting
 
 ### No sound after pressing Play
 
-- Check that the browser tab and operating system are not muted.
-- Press **Play** directly once; browsers require a user gesture before creating audio.
-- Try Chrome or Edge if the current browser blocks local-file audio behavior.
+- Confirm that the browser tab and operating system output are not muted.
+- Press Play directly once; browsers require a user gesture before starting audio.
+- Try Chrome or Edge if local-file audio is restricted by the current browser policy.
+- Serve the folder over `http://localhost` if direct `file://` access is disabled administratively.
 
 ### The waveform is flat
 
-The waveform remains nearly flat while stopped. Start playback and confirm that the status in the header changes to **Playing**.
+The waveform is intentionally flat while stopped. Start playback and confirm that the header status changes to **Playing**.
 
-### Copy Handoff does not use the clipboard
+### Clipboard copy is blocked
 
-Some browsers restrict the Clipboard API on `file://` pages. LoopSmith includes a legacy selection-and-copy fallback, but browser policy can still intervene. If necessary, select the text inside the handoff field manually and copy it.
+The modern Clipboard API may be unavailable on a `file://` page. LoopSmith falls back to selection-based copying; if the browser blocks both methods, select the handoff text and copy it manually.
 
-### WAV export takes a moment
+### WAV export takes time
 
-The browser renders two complete loops before creating the download. Longer, slower-tempo loops require more samples and therefore take longer to export.
+The browser renders the complete arrangement faster than real time but still creates every sample for two loops and the effects tail. Slow tempos and enabled spatial effects require more work.
 
-### A manually edited melody contains too many rests
+### A seed does not restore every control
 
-The density guarantees apply to generated melodies. Manual editing is intentionally unrestricted, so clicking active cells can create additional rests. Press **New loop · change everything** to return to a validated generated pattern.
+The seed reproduces composition decisions under the same scale and density. Use the exported JSON to preserve the full arrangement, including tempo, root, progression, timbre, pad, and drums.
 
-## Design goals
+## Design principles
 
-- Keep the project understandable and portable.
 - Prefer musical constraints over uncontrolled randomness.
-- Make every generated loop reproducible from a seed.
-- Produce instructions suitable for runtime synthesis in a game engine.
-- Avoid audio assets when a lightweight procedural implementation is enough.
+- Keep generated material reproducible and inspectable.
 - Preserve direct manual control after generation.
+- Make the browser tool useful without a build system or account.
+- Export implementation data, not only rendered audio.
+- Keep the runtime small enough to understand and modify.
 
 ## Contributing
 
-Contributions are welcome after the project is published. Useful areas include:
+Contributions are welcome. Good areas for improvement include additional motif libraries, scale families, synthesis voices, stereo movement, engine handoff formats, browser coverage, and sequencer accessibility.
 
-- additional motif libraries;
-- new scale families;
-- more synthesis voices;
-- improved stereo movement;
-- additional engine handoff formats;
-- browser compatibility testing;
-- accessibility improvements for the sequencer.
-
-Please keep new features dependency-free unless a dependency provides a clear and substantial benefit.
+Please keep runtime additions dependency-free unless a dependency provides a clear and substantial benefit. Run the generator tests and describe any changes to the export schema or musical invariants.
 
 ## License
 
-This project is distributed under the **Apache-2.0 license**.
-
-See [`LICENSE`](./LICENSE) for full legal text.
-
-## ❤️ Support the Project
-
-If you find this tool useful, consider leaving a ⭐ on GitHub
+LoopSmith is distributed under the Apache License 2.0. See the `LICENSE` file in the published repository for the full terms.
